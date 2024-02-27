@@ -222,17 +222,16 @@ def copy_prereq_from_seed_folder(source_folder,stera_call,response_exe,destinati
     for item in contents:
         source_path = os.path.join(source_folder, item)
         destination_path = os.path.join(destination_folder, item)
-
-        # Use shutil.copy2() to preserve file metadata (timestamps, etc.)
-
-        if os.path.isdir(source_path):
-            shutil.copytree(source_path, destination_path, symlinks=False, ignore=None)
-        else:
-            shutil.copy2(source_path, destination_path)
-
-
-
-
+        for _ in range(5):
+            try:
+                if os.path.isdir(source_path):
+                    shutil.copytree(source_path, destination_path, symlinks=False, ignore=None)
+                else:
+                    shutil.copy2(source_path, destination_path)
+                return  # Success, exit the loop
+            except PermissionError:
+                print(f"PermissionError: {source_path} is in use, retrying...")
+                time.sleep(10)
 
     return
 
@@ -331,7 +330,7 @@ def database_parameter_selection(df):
 
 
 
-def main_call_per_process(df):#,processes):
+def main_call_per_process(df,processes):
     df_and_index = df
     input_list = database_parameter_selection(df_and_index)
 
@@ -373,72 +372,72 @@ def main_call_per_process(df):#,processes):
     response_exe = "Response.exe"
     unique_folder = os.path.join(parent_folder,unique_folder_name)
     copy_prereq_from_seed_folder(seed_folder,stera_call,response_exe,unique_folder)
-
+    # THis is necessary - is seems it does not create the folder by itself
     # create output folder and data_structure.txt file
-    # create_output_folder = Path(parent_folder, unique_folder_name, output_folder).mkdir(parents=True)
-    processes = []
-    # processes = run_response(unique_folder,stera_call,processes)
-    run_response(unique_folder, stera_call, processes)
+    create_output_folder = Path(parent_folder, unique_folder_name, output_folder).mkdir(parents=True)
+    # processes = []
+    processes = run_response(unique_folder,stera_call,processes)
+    # run_response(unique_folder, stera_call, processes)
     print(f"Processing row {df_and_index['index']}")
-    # return processes
-    return
+    return processes
+    # return
 
 
 # this is working
-# if __name__ == "__main__":
-#     # Code to create and start processes
-#     df = read_database_Ruben_Vasile()
-#     # add index to the DATAFRAME
-#     df = df.reset_index()
-#     start_time_acc = datetime.now()
-#     # Run each row in a separete process (this is done inside the response_function)
-#     processes = []
-#     for _, row in df.iterrows():
-#         processes = main_call_per_process(row,processes)
-#     # Wait for all processes to finish
-#     for process in processes:
-#         process.wait()
-#
-#     end_time_acc = datetime.now()
-#     print('   TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n')
-
-
 if __name__ == "__main__":
     # Code to create and start processes
     df = read_database_Ruben_Vasile()
-    # Add index to the DATAFRAME
+    # add index to the DATAFRAME
     df = df.reset_index()
-
     start_time_acc = datetime.now()
-
-    # Use ProcessPoolExecutor for parallel processing with max_workers=3
-    max_workers = 3
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        # Submit initial tasks up to max_workers
-        futures = {executor.submit(main_call_per_process, df=row[1]) for _, row in zip(range(max_workers), df.iterrows())}
-
-        while futures:
-            # Wait for any completed task
-            completed = as_completed(futures)
-
-            # Retrieve the result (if needed)
-            for future in completed:
-                future.result()
-
-            # Remove completed tasks from the set
-            futures.difference_update(completed)
-
-            # Submit a new task if there is a row available
-            try:
-                _, row = next(df.iterrows())
-                future = executor.submit(main_call_per_process, df=row)
-                futures.add(future)
-            except StopIteration:
-                pass  # All rows processed
+    # Run each row in a separete process (this is done inside the response_function)
+    processes = []
+    for _, row in df.iterrows():
+        processes = main_call_per_process(row,processes)
+    # Wait for all processes to finish
+    for process in processes:
+        process.wait()
 
     end_time_acc = datetime.now()
-    print('TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n')
+    print('   TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n')
 
 
-    #this is tested for git
-    # tetst
+# if __name__ == "__main__":
+#     # Code to create and start processes
+#     df = read_database_Ruben_Vasile()
+#     # Add index to the DATAFRAME
+#     df = df.reset_index()
+#
+#     start_time_acc = datetime.now()
+#
+#     # Use ProcessPoolExecutor for parallel processing with max_workers=3
+#     max_workers = 11
+#     with ProcessPoolExecutor(max_workers=max_workers) as executor:
+#         # Submit initial tasks up to max_workers
+#         futures = {executor.submit(main_call_per_process, df=row[1]) for _, row in zip(range(max_workers), df.iterrows())}
+#
+#         while futures:
+#             # Wait for any completed task
+#             completed = as_completed(futures)
+#
+#             # Retrieve the result (if needed)
+#             for future in completed:
+#                 future.result()
+#
+#             # Remove completed tasks from the set
+#             futures.difference_update(completed)
+#
+#             # Submit a new task if there is a row available
+#             try:
+#                 _, row = next(df.iterrows())
+#                 future = executor.submit(main_call_per_process, df=row)
+#                 futures.add(future)
+#             except StopIteration:
+#                 pass  # All rows processed
+#
+#     end_time_acc = datetime.now()
+#     print('TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n')
+#
+#
+#     #this is tested for git
+#     # tetst
