@@ -226,8 +226,10 @@ def copy_prereq_from_seed_folder(source_folder,stera_call,response_exe,destinati
             try:
                 if os.path.isdir(source_path):
                     shutil.copytree(source_path, destination_path, symlinks=False, ignore=None)
+
                 else:
                     shutil.copy2(source_path, destination_path)
+                time.sleep(3)
                 return  # Success, exit the loop
             except PermissionError:
                 print(f"PermissionError: {source_path} is in use, retrying...")
@@ -374,7 +376,7 @@ def main_call_per_process(df):#,processes):
     copy_prereq_from_seed_folder(seed_folder,stera_call,response_exe,unique_folder)
     # THis is necessary - is seems it does not create the folder by itself
     # create output folder and data_structure.txt file
-    create_output_folder = Path(parent_folder, unique_folder_name, output_folder).mkdir(parents=True)
+    create_output_folder = Path(parent_folder, unique_folder_name, output_folder).mkdir(parents=True,exist_ok=True)
     processes = []
     # processes = run_response(unique_folder,stera_call,processes)
     run_response(unique_folder, stera_call, processes)
