@@ -217,25 +217,21 @@ def copy_prereq_from_seed_folder(source_folder,stera_call,response_exe,destinati
 
     # Get the list of files and subdirectories in the source folder
     contents = os.listdir(source_folder)
-    max_retries = 10
+
     # Copy each file and subdirectory to the destination folder
     for item in contents:
         source_path = os.path.join(source_folder, item)
         destination_path = os.path.join(destination_folder, item)
 
         # Use shutil.copy2() to preserve file metadata (timestamps, etc.)
-        for _ in range(max_retries):
-            try:
-                if os.path.isdir(source_path):
-                    shutil.copytree(source_path, destination_path, symlinks=False, ignore=None)
-                else:
-                    shutil.copy2(source_path, destination_path)
-                return  # Success, exit the loop
-            except PermissionError:
-                print("File in use, retrying...")
-                time.sleep(90) # seconds
 
-        print(f"Failed to copy {source_path} to {destination_path} after {max_retries} retries.")
+        if os.path.isdir(source_path):
+            shutil.copytree(source_path, destination_path, symlinks=False, ignore=None)
+        else:
+            shutil.copy2(source_path, destination_path)
+
+
+
 
 
     return
