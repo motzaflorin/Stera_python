@@ -277,7 +277,7 @@ def read_database_Ruben_Vasile ():
     database_file = "DataSet_P3_orig.csv"
     database_file_location = os.path.join(database_folder,database_file)
     def testing_of_alg(database_file_location):
-        number_of_rows_to_read = 11
+        number_of_rows_to_read = 33
         rows_to_be_read_list = [x for x in range(number_of_rows_to_read + 1)]
         # Use pd.read_csv on the modified string
         df = pd.read_csv((database_file_location),
@@ -336,12 +336,14 @@ def database_parameter_selection(df):
 
 
 def main_call_per_process(df):#,processes):
+    start_time_process = time.time()
     df_and_index = df
     input_list = database_parameter_selection(df_and_index)
 
     output_inputdata_file = "inputdata.txt"
 
     parent_folder = "D:\\0 DOCTORAT\\00_RC2\\Testare_generare_cladiri_Stera\\dummy_foler_test"
+    big_log_file = "log.txt"
     input_folder = "input"
     output_folder = "output"
 
@@ -384,6 +386,30 @@ def main_call_per_process(df):#,processes):
     # processes = run_response(unique_folder,stera_call,processes)
     run_response(unique_folder, stera_call, processes)
     print(f"Processing row {df_and_index['index']}")
+    # Assuming "100 % finished" is the last line written to the file
+    stdout_file = os.path.join(unique_folder, "stdout.txt")
+
+    while True:
+        try:
+            with open(stdout_file, "r") as f:
+                # Read all lines and check the last line
+                lines = f.readlines()
+                if lines and lines[-1].strip() == "100 % finished":
+                    # Calculate the elapsed time for the current process
+                    elapsed_time_process = time.time() - start_time_process
+                    processing_string = f"Processing row {df['index']} - 100% finished. Elapsed time: {elapsed_time_process:.2f} seconds"
+                    print(processing_string)
+                    with open (os.path.join(parent_folder,big_log_file), "a+") as file:
+                        file.write(processing_string)
+                        file.write("\n")
+
+                    break
+
+        except FileNotFoundError:
+            # Handle the case when stdout.txt is not found (process hasn't started yet)
+            pass
+        # Wait for a while before checking again
+        # time.sleep(5)
     # return processes
     return
 
@@ -406,6 +432,26 @@ def main_call_per_process(df):#,processes):
 #     end_time_acc = datetime.now()
 #     print('   TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n')
 
+def generate_tasks(df):
+    for _, row in df.iterrows():
+        yield row
+
+def process_rows(executor, tasks):
+    futures = set()
+
+    for task in tasks:
+        future = executor.submit(main_call_per_process, df=task)
+        futures.add(future)
+
+    # Wait for all submitted futures to complete
+    for future in as_completed(futures):
+        try:
+            # Retrieve the result (if needed)
+            result = future.result()
+            # Handle the result if needed
+        except Exception as e:
+            # Handle exceptions if needed
+            print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     # Code to create and start processes
@@ -416,45 +462,25 @@ if __name__ == "__main__":
     start_time_acc = datetime.now()
 
     # Use ProcessPoolExecutor for parallel processing with max_workers=3
-    max_workers = 3
+    max_workers = 15
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        df_iter = iter(df.iterrows())
+        # Create a generator to yield tasks one by one
+        task_generator = generate_tasks(df)
+
 
         # Semaphore to limit the number of concurrently running tasks
         semaphore = threading.Semaphore(max_workers)
 
-        # List to keep track of submitted futures
-        futures = []
-
-        while True:
-            # Acquire the semaphore before submitting a task
-            semaphore.acquire()
-
-            # Submit a new task for the next row
-            try:
-                _, row = next(df_iter)
-                future = executor.submit(main_call_per_process, df=row)
-
-                # Callback to release the semaphore when the task is complete
-                future.add_done_callback(lambda p: semaphore.release())
-
-                futures.append(future)
-            except StopIteration:
-                break  # All rows processed
-
-        # Wait for all submitted futures to complete
-        for future in as_completed(futures):
-            try:
-                # Retrieve the result (if needed)
-                result = future.result()
-                # Handle the result if needed
-            except Exception as e:
-                # Handle exceptions if needed
-                print(f"An error occurred: {e}")
+        # Submit tasks and wait for them to complete
+        process_rows(executor, task_generator)
 
     end_time_acc = datetime.now()
-    print('TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n')
 
+    parent_folder = "D:\\0 DOCTORAT\\00_RC2\\Testare_generare_cladiri_Stera\\dummy_foler_test"
+    big_log_file = "log.txt"
+    processing_string = 'TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n'
+    with open(os.path.join(parent_folder, big_log_file), "a+") as file:
+        file.write(processing_string)
+        file.write("\n")
 
-    #this is tested for git
-    # tetst
+    print(processing_string)
