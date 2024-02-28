@@ -18,6 +18,7 @@ import subprocess
 from functools import partial
 from multiprocessing import Process
 import concurrent.futures
+import threading
 from concurrent.futures import as_completed, wait
 
 import floor_properties
@@ -31,6 +32,7 @@ import beam_properties
 import general_model_info_2
 import inputwave_writing
 import public_func
+import itertools
 
 
 def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,input_folder,output_folder,input_list):
@@ -222,18 +224,19 @@ def copy_prereq_from_seed_folder(source_folder,stera_call,response_exe,destinati
     for item in contents:
         source_path = os.path.join(source_folder, item)
         destination_path = os.path.join(destination_folder, item)
-        for _ in range(5):
-            try:
-                if os.path.isdir(source_path):
-                    shutil.copytree(source_path, destination_path, symlinks=False, ignore=None)
 
-                else:
-                    shutil.copy2(source_path, destination_path)
-                time.sleep(3)
-                return  # Success, exit the loop
-            except PermissionError:
-                print(f"PermissionError: {source_path} is in use, retrying...")
-                time.sleep(10)
+        try:
+            if os.path.isdir(source_path):
+                # continue
+                shutil.copytree(source_path, destination_path, symlinks=False, ignore=None)
+
+            else:
+                shutil.copy2(source_path, destination_path)
+                # breakpoint()
+            return  # Success, exit the loop
+        except PermissionError:
+            print(f"PermissionError: {source_path} is in use, retrying...")
+
 
     return
 
@@ -415,27 +418,39 @@ if __name__ == "__main__":
     # Use ProcessPoolExecutor for parallel processing with max_workers=3
     max_workers = 3
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        # Submit initial tasks up to max_workers
-        futures = {executor.submit(main_call_per_process, df=row[1]) for _, row in zip(range(max_workers), df.iterrows())}
+        df_iter = iter(df.iterrows())
 
-        while futures:
-            # Wait for any completed task
-            completed = as_completed(futures)
+        # Semaphore to limit the number of concurrently running tasks
+        semaphore = threading.Semaphore(max_workers)
 
-            # Retrieve the result (if needed)
-            for future in completed:
-                future.result()
+        # List to keep track of submitted futures
+        futures = []
 
-            # Remove completed tasks from the set
-            futures.difference_update(completed)
+        while True:
+            # Acquire the semaphore before submitting a task
+            semaphore.acquire()
 
-            # Submit a new task if there is a row available
+            # Submit a new task for the next row
             try:
-                _, row = next(df.iterrows())
+                _, row = next(df_iter)
                 future = executor.submit(main_call_per_process, df=row)
-                futures.add(future)
+
+                # Callback to release the semaphore when the task is complete
+                future.add_done_callback(lambda p: semaphore.release())
+
+                futures.append(future)
             except StopIteration:
-                pass  # All rows processed
+                break  # All rows processed
+
+        # Wait for all submitted futures to complete
+        for future in as_completed(futures):
+            try:
+                # Retrieve the result (if needed)
+                result = future.result()
+                # Handle the result if needed
+            except Exception as e:
+                # Handle exceptions if needed
+                print(f"An error occurred: {e}")
 
     end_time_acc = datetime.now()
     print('TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n')
