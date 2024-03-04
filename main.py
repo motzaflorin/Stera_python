@@ -126,17 +126,18 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
     # Populate with model info general 2
     input_file_location = ""
     def story_mass_calc(x_span,y_span,height,col_w,col_h,beam_w,beam_h,plate_t,no_x_span,no_y_span,py):
-        # all calc is done in mm and kg
+        # all calc is done in m and kg although the inputs are in mm
         no_col = (no_x_span+1)*(no_y_span+1)
-        one_col_vol = col_w * col_h*height * 10**(-9)
+        one_col_vol = col_w * col_h * height * 10**(-9)
         no_beams_x = (no_y_span+1) * no_x_span
         no_beams_y = (no_x_span+1) * no_y_span
         one_beam_vol_x = beam_h * beam_w * x_span * 10**(-9)
         one_beam_vol_y = beam_h * beam_w * y_span * 10**(-9)
         plate_volume = (no_x_span * x_span + no_y_span * y_span) * plate_t * 10**(-9)
-        rho = 25 # kg/m3
-        py = py * 101.97/1000 # from kN/m to kg/m
-        current_story_beam_distributed_weight = (no_beams_x * x_span +no_beams_y * y_span) * py
+        rho = 25  # kN/m3
+        py = py  # in kN/m
+        current_story_beam_distributed_weight = (no_beams_x * x_span/1000 +no_beams_y * y_span/1000) * py
+        print(current_story_beam_distributed_weight)
 
         normal_weight = (no_col * one_col_vol + no_beams_x * one_beam_vol_x +no_beams_y * one_beam_vol_y + plate_volume)  * rho + current_story_beam_distributed_weight
         last_story_weight = (no_col * one_col_vol /2 + no_beams_x * one_beam_vol_x +no_beams_y * one_beam_vol_y + plate_volume)  * rho + current_story_beam_distributed_weight
@@ -280,6 +281,7 @@ def read_database_Ruben_Vasile ():
     database_file_location = os.path.join(database_folder,database_file)
     def testing_of_alg(database_file_location):
         number_of_rows_to_read = 33
+        number_of_rows_to_read = 1
         rows_to_be_read_list = [x for x in range(number_of_rows_to_read + 1)]
         # Use pd.read_csv on the modified string
         df = pd.read_csv((database_file_location),

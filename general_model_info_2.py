@@ -29,8 +29,8 @@ def determine_position_type(matrix, i, j):
     if i == 0 or i == rows - 1:
         if j == 0 or j == cols - 1:
             return "Corner"
-    elif i == 0 or i == rows - 1:
-        return "Marginal x"
+        else:
+            return "Marginal x"
     elif j == 0 or j == cols - 1:
         return "Marginal y"
     else:
@@ -45,6 +45,7 @@ def weight_node_distribution(floor,no_x_spans,no_y_spans,x_span,y_span,current_s
                     matrix_of_weights[row][element] = (x_span/2 * y_span/2) * weight/area * 1000 + py * (x_span/2 + y_span/2)
                 elif (determine_position_type(matrix_of_weights,row,element) == "Marginal x"):
                     matrix_of_weights[row][element] = (x_span * y_span/2) * weight/area *1000 + py * (x_span + y_span/2)
+                    # print(matrix_of_weights[row][element])
                 elif (determine_position_type(matrix_of_weights,row,element) == "Marginal y"):
                     matrix_of_weights[row][element] = (x_span/2 * y_span) * weight/area *1000 + py * (x_span/2 + y_span)
                 elif (determine_position_type(matrix_of_weights,row,element) == "Center"):
