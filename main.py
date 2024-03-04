@@ -41,7 +41,7 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
     # 1
     # General Settings              -       could be moved in other place
     [index_of_accelerogram_set, timestep, scale_factor, story_height, building_height, span, bay,
-                      no_story, no_span, no_bay, csi, col_width1, col_width2, beam_width, beam_height, young_modul,
+                      no_story, no_span, no_bay, csi, col_width1, col_width2, beam_width, beam_height, py, young_modul,
                       mom_cap_x, mom_cap_y, mom_cap_beam, unique_index] = input_list
 
 
@@ -125,7 +125,7 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
     # FInal part
     # Populate with model info general 2
     input_file_location = ""
-    def story_mass_calc(x_span,y_span,height,col_w,col_h,beam_w,beam_h,plate_t,no_x_span,no_y_span):
+    def story_mass_calc(x_span,y_span,height,col_w,col_h,beam_w,beam_h,plate_t,no_x_span,no_y_span,py):
         # all calc is done in mm and kg
         no_col = (no_x_span+1)*(no_y_span+1)
         one_col_vol = col_w * col_h*height * 10**(-9)
@@ -135,15 +135,17 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
         one_beam_vol_y = beam_h * beam_w * y_span * 10**(-9)
         plate_volume = (no_x_span * x_span + no_y_span * y_span) * plate_t * 10**(-9)
         rho = 25 # kg/m3
+        py = py * 101.97/1000 # from kN/m to kg/m
+        current_story_beam_distributed_weight = (no_beams_x * x_span +no_beams_y * y_span) * py
 
-        normal_weight = (no_col * one_col_vol + no_beams_x * one_beam_vol_x +no_beams_y * one_beam_vol_y + plate_volume)  * rho
-        last_story_weight = (no_col * one_col_vol /2 + no_beams_x * one_beam_vol_x +no_beams_y * one_beam_vol_y + plate_volume)  * rho
+        normal_weight = (no_col * one_col_vol + no_beams_x * one_beam_vol_x +no_beams_y * one_beam_vol_y + plate_volume)  * rho + current_story_beam_distributed_weight
+        last_story_weight = (no_col * one_col_vol /2 + no_beams_x * one_beam_vol_x +no_beams_y * one_beam_vol_y + plate_volume)  * rho + current_story_beam_distributed_weight
         return normal_weight, last_story_weight
     x_span = int(float(span)*1000)
     y_span = int(float(bay)*1000)
 
     height = int(float(story_height)*1000)
-    story_weight, last_story_weight = story_mass_calc(x_span,y_span,height,col_w,col_h,beam_w,beam_h,thick,no_x_spans,no_y_spans)  # [kN]
+    story_weight, last_story_weight = story_mass_calc(x_span,y_span,height,col_w,col_h,beam_w,beam_h,thick,no_x_spans,no_y_spans,py)  # [kN]
 
 
 
@@ -153,7 +155,7 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
 
     # out goes weight and load distribution - to be used in writing specific files for them
     weight_distribution,load_distribution = general_model_info_2.write_model_info_2(file_path, x_span, no_x_spans, y_span, no_y_spans, no_of_floors, height, story_weight,last_story_weight, amp_x, amp_y,
-                       amp_z)
+                       amp_z,py)
     return weight_distribution,load_distribution
 def inputwave_x_generator(wave_file_location,output_folder,unique_folder,input_folder,timestep):
 
@@ -317,6 +319,7 @@ def database_parameter_selection(df):
     col_width2 =                df["h_st"]
     beam_width =                df["b_gr"]
     beam_height =               df["h_gr"]
+    py =                        df["py"]
     young_modul =               df["E"]
     mom_cap_x =                 df["MstX"]
     mom_cap_y =                 df["MstY"]
@@ -325,7 +328,7 @@ def database_parameter_selection(df):
     unique_index =              df["index"]
 
     input_set_list = [index_of_accelerogram_set,timestep,scale_factor,story_height,building_height,span,bay,
-                      no_story,no_span,no_bay,csi,col_width1,col_width2,beam_width,beam_height,young_modul,
+                      no_story,no_span,no_bay,csi,col_width1,col_width2,beam_width,beam_height,py,young_modul,
                       mom_cap_x,mom_cap_y,mom_cap_beam,unique_index]
     # modified_list=[] #to  single_value TYPE (not list)
     # for item in range(len(input_set_list)):

@@ -29,21 +29,24 @@ def determine_position_type(matrix, i, j):
     if i == 0 or i == rows - 1:
         if j == 0 or j == cols - 1:
             return "Corner"
-        else:
-            return "Marginal"
+    elif i == 0 or i == rows - 1:
+        return "Marginal x"
     elif j == 0 or j == cols - 1:
-        return "Marginal"
+        return "Marginal y"
     else:
         return "Center"
-def weight_node_distribution(floor,no_x_spans,no_y_spans,x_span,y_span,current_story_weight,last_story_weight,no_floors):
+def weight_node_distribution(floor,no_x_spans,no_y_spans,x_span,y_span,current_story_weight,last_story_weight,no_floors,py):
     # wigth on node is in [N]
-    def node_calculation (matrix_of_weights,x_span,y_span,weight,area):
+    py = py  # from kN/m to N/mm
+    def node_calculation (matrix_of_weights,x_span,y_span,weight,area,py):
         for row in range(len(matrix_of_weights)):
             for element in range(len(matrix_of_weights[row])):
                 if (determine_position_type(matrix_of_weights,row,element) == "Corner"):
-                    matrix_of_weights[row][element] = (x_span/2 * y_span/2) * weight/area *1000
-                elif (determine_position_type(matrix_of_weights,row,element) == "Marginal"):
-                    matrix_of_weights[row][element] = (x_span * y_span/2) * weight/area *1000
+                    matrix_of_weights[row][element] = (x_span/2 * y_span/2) * weight/area * 1000 + py * (x_span/2 + y_span/2)
+                elif (determine_position_type(matrix_of_weights,row,element) == "Marginal x"):
+                    matrix_of_weights[row][element] = (x_span * y_span/2) * weight/area *1000 + py * (x_span + y_span/2)
+                elif (determine_position_type(matrix_of_weights,row,element) == "Marginal y"):
+                    matrix_of_weights[row][element] = (x_span/2 * y_span) * weight/area *1000 + py * (x_span/2 + y_span)
                 elif (determine_position_type(matrix_of_weights,row,element) == "Center"):
                     matrix_of_weights[row][element] = (x_span * y_span) * weight/area *1000
         return matrix_of_weights
@@ -53,12 +56,12 @@ def weight_node_distribution(floor,no_x_spans,no_y_spans,x_span,y_span,current_s
     if floor == 0:
         return [[0 for span in range(no_x_spans+1)] for span in range(no_y_spans+1)]
     elif floor == no_floors -1:
-        return node_calculation(matrix_of_weights,x_span,y_span,last_story_weight,area)
+        return node_calculation(matrix_of_weights,x_span,y_span,last_story_weight,area, py)
     else:
-       return node_calculation(matrix_of_weights,x_span,y_span,current_story_weight,area)
+       return node_calculation(matrix_of_weights,x_span,y_span,current_story_weight,area, py)
 
 
-def write_model_info_2(input_file_location,x_span,no_x_spans,y_span,no_y_spans,no_floors,height,weight,last_story_weight,amp_x,amp_y,amp_z):  # folder output will be overwritten
+def write_model_info_2(input_file_location,x_span,no_x_spans,y_span,no_y_spans,no_floors,height,weight,last_story_weight,amp_x,amp_y,amp_z,py):  # folder output will be overwritten
     #####################################################
     #                    DESCRIPTION                    #
     #####################################################
@@ -96,7 +99,7 @@ def write_model_info_2(input_file_location,x_span,no_x_spans,y_span,no_y_spans,n
                             }
 
     weight_node_dict = {"Weight on each node (N)": ""}
-    weight_node_dict.update({public_func.five_spaces+f'{floor}': weight_node_distribution(floor,no_x_spans,no_y_spans,x_span,y_span,weight,last_story_weight,no_floors) for floor in range(no_floors)})
+    weight_node_dict.update({public_func.five_spaces+f'{floor}': weight_node_distribution(floor,no_x_spans,no_y_spans,x_span,y_span,weight,last_story_weight,no_floors,py) for floor in range(no_floors)})
 
     connection_panel_dict = {"Connection Panel": "",
                       public_func.five_spaces+"type effec.ratio": [1,1]
