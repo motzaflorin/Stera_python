@@ -76,14 +76,14 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
     #       col_properties_values_list = [col_w,col_h,ec,xMc,xMy,xMu,xK1_K0,xK2_K0,yMc,yMy,yMu,yK1_K0,yK2_K0,r1,r2,r3,Ramda,ID_Ramda,htype,110,0,0,0,0,0,0]
     col_w = int(float(col_width1)*1000)# mm
     col_h = int(float(col_width2)*1000)
-    ec = 36
+    ec = young_modul/(10**6) #(Mpa without 1000)
     xMc = int(float(mom_cap_x))*0.8
-    xMy = int(float(mom_cap_x))*0.9
+    xMy = int(float(mom_cap_x))
     xMu = int(float(mom_cap_x))
     xK1_K0 = 0.4
     xK2_K0 = 0.001
     yMc = int(float(mom_cap_y))*0.8
-    yMy = int(float(mom_cap_y))*0.9
+    yMy = int(float(mom_cap_y))
     yMu = int(float(mom_cap_y))
     yK1_K0 = 0.4
     yK2_K0 = 0.001
@@ -93,14 +93,14 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
     # Popualte main properties of structural elements - BEAM
     beam_w = int(float(beam_width)*1000) # mm
     beam_h = int(float(beam_height)*1000)
-    ec = 36
+    ec = young_modul/(10**6)
     xMc = int(float(mom_cap_beam))*0.8
-    xMy = int(float(mom_cap_beam))*0.9
+    xMy = int(float(mom_cap_beam))
     xMu = int(float(mom_cap_beam))
     xK1_K0 = 0.4
     xK2_K0 = 0.001
     yMc = int(float(mom_cap_beam))*0.8
-    yMy = int(float(mom_cap_beam))*0.9
+    yMy = int(float(mom_cap_beam))
     yMu = int(float(mom_cap_beam))
     yK1_K0 = 0.4
     yK2_K0 = 0.001
@@ -113,7 +113,7 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
     # Popualte main properties of structural elements - FLOOR
     thick = 150
     fc = 2400 # std value
-    ec = 36000 # std value
+    ec = young_modul/(10**6) # std value
     floor_properties.write_member_properties(file_path,thick,fc,ec)
     # 5 E
     # Popualte main properties of structural elements - REST of unused elements
