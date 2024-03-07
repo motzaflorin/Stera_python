@@ -54,7 +54,7 @@ def model_member_type(no_of_floors, no_x_spans, no_y_spans,input_file_location):
         for y in range(0, (no_y_spans * 2) + 1):
             for x in range(0, (no_x_spans * 2) + 1):
                 if (x % 2 == 0) and (y % 2 == 0):
-                    matrix_property[y, x] = 4
+                    matrix_property[y, x] = 4       # option: 4 (for spring)
         return matrix_property
     # Creatix matrix (spans x2)+1
     matrix_property = np.zeros(((no_y_spans*2)+1, (no_x_spans*2)+1), dtype=int)

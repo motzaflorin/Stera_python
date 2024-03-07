@@ -419,24 +419,6 @@ def main_call_per_process(df):#,processes):
     return
 
 
-# this is working
-# if __name__ == "__main__":
-#     # Code to create and start processes
-#     df = read_database_Ruben_Vasile()
-#     # add index to the DATAFRAME
-#     df = df.reset_index()
-#     start_time_acc = datetime.now()
-#     # Run each row in a separete process (this is done inside the response_function)
-#     processes = []
-#     for _, row in df.iterrows():
-#         processes = main_call_per_process(row,processes)
-#     # Wait for all processes to finish
-#     for process in processes:
-#         process.wait()
-#
-#     end_time_acc = datetime.now()
-#     print('   TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n')
-
 def generate_tasks(df):
     for _, row in df.iterrows():
         yield row

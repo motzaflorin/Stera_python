@@ -46,7 +46,7 @@ def write_options(input_file_location):  # folder output will be overwritten
                             "Column(0: RC, 1: S, 2: SRC, 3: Direct, 3: Mixed)"                  : "3",
                             "Beam(0: RC, 1: S, 2: SRC, 3: Direct, 3: Mixed)"                    : "3",
                             "Wall(0: RC, 1: S, 2: SRC, 3: Direct, 3: Mixed)"                    : "0",
-                            "Floor Slab (0:2D Rigid, 1:3D Rigid, 2:Flexible, 3:Mixed)"          : "0",
+                            "Floor Slab (0:2D Rigid, 1:3D Rigid, 2:Flexible, 3:Mixed)"          : "2",  # was rigid -> 0
                             "Ground Spring (0:None, 1:Cone model, 2:Direct)"                    : "0",
                             "Isolator(0:Not considered, 1: Considered)"                         : "0",
                             "Passive Damper (0:Not considered, 1:Considered)"                   : "0",

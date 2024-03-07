@@ -38,18 +38,24 @@ def determine_position_type(matrix, i, j):
 def weight_node_distribution(floor,no_x_spans,no_y_spans,x_span,y_span,current_story_weight,last_story_weight,no_floors,py):
     # wigth on node is in [N]
     py = py  # from kN/m to N/mm
+    print(f"py={py}\n x_span = {x_span}\n, y_span={y_span}")
+
     def node_calculation (matrix_of_weights,x_span,y_span,weight,area,py):
         for row in range(len(matrix_of_weights)):
             for element in range(len(matrix_of_weights[row])):
                 if (determine_position_type(matrix_of_weights,row,element) == "Corner"):
-                    matrix_of_weights[row][element] = (x_span/2 * y_span/2) * weight/area * 1000 + py * (x_span/2 + y_span/2)
+                    matrix_of_weights[row][element] = (x_span/2 * y_span/2) * weight/area * 1000 #+ py * (x_span/2 + y_span/2)
+
                 elif (determine_position_type(matrix_of_weights,row,element) == "Marginal x"):
-                    matrix_of_weights[row][element] = (x_span * y_span/2) * weight/area *1000 + py * (x_span + y_span/2)
-                    # print(matrix_of_weights[row][element])
+                    matrix_of_weights[row][element] = (x_span * y_span/2) * weight/area *1000 #+ py * (x_span + y_span/2)
+
                 elif (determine_position_type(matrix_of_weights,row,element) == "Marginal y"):
-                    matrix_of_weights[row][element] = (x_span/2 * y_span) * weight/area *1000 + py * (x_span/2 + y_span)
+                    matrix_of_weights[row][element] = (x_span/2 * y_span) * weight/area *1000 #+ py * (x_span/2 + y_span)
+
                 elif (determine_position_type(matrix_of_weights,row,element) == "Center"):
-                    matrix_of_weights[row][element] = (x_span * y_span) * weight/area *1000
+                    matrix_of_weights[row][element] = (x_span * y_span) * weight/area *1000 #+ py * (x_span + y_span)
+
+
         return matrix_of_weights
     matrix_of_weights = [[2*span for span in range(no_x_spans+1)] for span in range(no_y_spans+1)]
     area = (no_x_spans * x_span) * (no_y_spans * y_span)
