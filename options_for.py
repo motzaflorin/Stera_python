@@ -12,7 +12,7 @@ import os
 import public_func
 
 
-def write_options(input_file_location):  # folder output will be overwritten
+def write_options(input_file_location,csi):  # folder output will be overwritten
     #####################################################
     #                    DESCRIPTION                    #
     #####################################################
@@ -46,7 +46,7 @@ def write_options(input_file_location):  # folder output will be overwritten
                             "Column(0: RC, 1: S, 2: SRC, 3: Direct, 3: Mixed)"                  : "3",
                             "Beam(0: RC, 1: S, 2: SRC, 3: Direct, 3: Mixed)"                    : "3",
                             "Wall(0: RC, 1: S, 2: SRC, 3: Direct, 3: Mixed)"                    : "0",
-                            "Floor Slab (0:2D Rigid, 1:3D Rigid, 2:Flexible, 3:Mixed)"          : "2",  # was rigid -> 0
+                            "Floor Slab (0:2D Rigid, 1:3D Rigid, 2:Flexible, 3:Mixed)"          : "0",  # was rigid -> 0
                             "Ground Spring (0:None, 1:Cone model, 2:Direct)"                    : "0",
                             "Isolator(0:Not considered, 1: Considered)"                         : "0",
                             "Passive Damper (0:Not considered, 1:Considered)"                   : "0",
@@ -62,7 +62,7 @@ def write_options(input_file_location):  # folder output will be overwritten
                              "Number of division of time interval"                              : "5",
                              "Damping type  (0. [C]=a[K0], 1. [C]=a[Kp], 2. [C]=a[K0]+b[M])"    : "2",
                              "Damping factors"                                                  : "",
-                             str(public_func.five_spaces)+"h1"+str(public_func.five_spaces)+"h2"                        : [0.05,0.05],
+                             str(public_func.five_spaces)+"h1"+str(public_func.five_spaces)+"h2"                        : [csi,csi],
                              "Numerical integration (0: Average acceleration method, 1: Operator splitting method)"     : "0",
                              "Type of dynamic input (0: Ground acceleration, 1: Vibrator on a floor, 2: Wind pressure)" : "0",
                              "Number of floor installing a vibrator"                            : "0"}

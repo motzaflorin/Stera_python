@@ -38,7 +38,7 @@ def determine_position_type(matrix, i, j):
 def weight_node_distribution(floor,no_x_spans,no_y_spans,x_span,y_span,current_story_weight,last_story_weight,no_floors,py):
     # wigth on node is in [N]
     py = py  # from kN/m to N/mm
-    print(f"py={py}\n x_span = {x_span}\n, y_span={y_span}")
+    # print(f"py={py}\n x_span = {x_span}\n, y_span={y_span}")
 
     def node_calculation (matrix_of_weights,x_span,y_span,weight,area,py):
         for row in range(len(matrix_of_weights)):
@@ -96,9 +96,11 @@ def write_model_info_2(input_file_location,x_span,no_x_spans,y_span,no_y_spans,n
 
     # List is predetermined by STERA 3D
     # span data on x needs to reach 30 entries, and on y 20 entries
+    no_of_possible_x_spans = 30
+    no_of_possible_y_spans = 20
     span_data_dict =        {"Span data"                          :"",
-                            "      X (mm)"                        :[ x_span for times in range(no_x_spans) ] + [0] * (30 - no_x_spans),
-                            "      Y (mm)"                        :[ y_span for times in range(no_y_spans) ] + [0] * (20 - no_y_spans)
+                            "      X (mm)"                        :[ x_span for times in range(no_x_spans) ] + [0] * (no_of_possible_x_spans - no_x_spans),
+                            "      Y (mm)"                        :[ y_span for times in range(no_y_spans) ] + [0] * (no_of_possible_y_spans - no_y_spans)
                             }
 
     floor_data_fict =       {"Floor data"                                                        :"",

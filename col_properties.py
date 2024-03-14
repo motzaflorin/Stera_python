@@ -57,8 +57,8 @@ def write_member_properties(input_file_location,col_w,col_h,ec,xMc,xMy,xMu,xK1_K
 
 
     # Lists with values for members                                                                         # last 6 values are for RC,SRC model - should be ignored in Direct definition
-    r1 = 0.5        #   Stiffness degrading ratio
-    r2 = 0          #   Slip Stiffness  ratio
+    r1 = 0.1        #   Stiffness degrading ratio
+    r2 = 0.3          #   Slip Stiffness  ratio
     r3 = 0          #   Strength Degrading ratio
     # Steel properties
     Ramda = 60      #   Buckling

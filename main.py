@@ -20,6 +20,7 @@ from multiprocessing import Process
 import concurrent.futures
 import threading
 from concurrent.futures import as_completed, wait
+import pathlib
 
 import floor_properties
 import output_stera_files
@@ -65,7 +66,7 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
 
     # 4
     # Populate with options for analysis
-    options_for.write_options(file_path)
+    options_for.write_options(file_path,csi)
 
     # 5
     # Popualte main properties of structural elements - member first
@@ -77,16 +78,16 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
     col_w = int(float(col_width1)*1000)# mm
     col_h = int(float(col_width2)*1000)
     ec = young_modul/(10**6) #(Mpa without 1000)
-    xMc = int(float(mom_cap_x))*0.8
-    xMy = int(float(mom_cap_x))
+    xMc = int(float(mom_cap_x))*0.9
+    xMy = int(float(mom_cap_x))*0.95
     xMu = int(float(mom_cap_x))
-    xK1_K0 = 0.4
-    xK2_K0 = 0.001
-    yMc = int(float(mom_cap_y))*0.8
-    yMy = int(float(mom_cap_y))
+    xK1_K0 = 1
+    xK2_K0 = 0.0001
+    yMc = int(float(mom_cap_y))*0.9
+    yMy = int(float(mom_cap_y))*0.95
     yMu = int(float(mom_cap_y))
-    yK1_K0 = 0.4
-    yK2_K0 = 0.001
+    yK1_K0 = 1
+    yK2_K0 = 0.0001
     col_properties.write_member_properties(file_path,col_w,col_h,ec,xMc,xMy,xMu,xK1_K0,xK2_K0,yMc,yMy,yMu,yK1_K0,yK2_K0)
 
     # 5 B
@@ -94,16 +95,16 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
     beam_w = int(float(beam_width)*1000) # mm
     beam_h = int(float(beam_height)*1000)
     ec = young_modul/(10**6)
-    xMc = int(float(mom_cap_beam))*0.8
-    xMy = int(float(mom_cap_beam))
+    xMc = int(float(mom_cap_beam))*0.9
+    xMy = int(float(mom_cap_beam))*0.95
     xMu = int(float(mom_cap_beam))
-    xK1_K0 = 0.4
-    xK2_K0 = 0.001
-    yMc = int(float(mom_cap_beam))*0.8
-    yMy = int(float(mom_cap_beam))
+    xK1_K0 = 1
+    xK2_K0 = 0.0001
+    yMc = int(float(mom_cap_beam))*0.9
+    yMy = int(float(mom_cap_beam))*0.95
     yMu = int(float(mom_cap_beam))
-    yK1_K0 = 0.4
-    yK2_K0 = 0.001
+    yK1_K0 = 1
+    yK2_K0 = 0.0001
     beam_properties.write_member_properties(file_path, beam_w, beam_h, ec, xMc, xMy, xMu, xK1_K0, xK2_K0, yMc, yMy, yMu,yK1_K0, yK2_K0)
     # 5 C
     # Popualte main properties of structural elements - rest of the properties up to FLOOR: WALL and EXT_SPRING
@@ -137,7 +138,7 @@ def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,i
         rho = 25  # kN/m3
         py = py  # in kN/m
         current_story_beam_distributed_weight = (no_beams_x * x_span/1000 +no_beams_y * y_span/1000) * py
-        print(current_story_beam_distributed_weight)
+        # print(current_story_beam_distributed_weight)
 
         normal_weight = (no_col * one_col_vol + no_beams_x * one_beam_vol_x +no_beams_y * one_beam_vol_y + plate_volume)  * rho + current_story_beam_distributed_weight
         last_story_weight = (no_col * one_col_vol /2 + no_beams_x * one_beam_vol_x +no_beams_y * one_beam_vol_y + plate_volume)  * rho + current_story_beam_distributed_weight
@@ -280,12 +281,17 @@ def read_database_Ruben_Vasile ():
     database_file = "DataSet_P3_orig.csv"
     database_file_location = os.path.join(database_folder,database_file)
     def testing_of_alg(database_file_location):
-        number_of_rows_to_read = 33
-        number_of_rows_to_read = 1
-        rows_to_be_read_list = [x for x in range(number_of_rows_to_read + 1)]
+        # number_of_rows_to_read = 33
+        number_of_rows_to_read = 5
+        rows_to_be_read_list = [x for x in range(number_of_rows_to_read+1)] #if x % 2 == 0]
+        # rows_to_be_read_list = [1,2,3]
+        # print(rows_to_be_read_list)
+        # print()
+        # breakpoint()
         # Use pd.read_csv on the modified string
         df = pd.read_csv((database_file_location),
                          skiprows=lambda x: x not in rows_to_be_read_list)  # second option, skip some rows
+        # print(df)
         return df
     def full_alg_database(database_file_location):
         df = pd.read_csv((database_file_location))
@@ -294,10 +300,11 @@ def read_database_Ruben_Vasile ():
     df = testing_of_alg(database_file_location)
     # Specify the condition for rows to keep
     condition_to_remove_L_shape_buildings = (df['Lshape'] != 1)
+    # print(condition_to_remove_L_shape_buildings)
     # Filter the DataFrame based on the condition
     df_filtered = df[condition_to_remove_L_shape_buildings]
-
-    return df
+    # print(df_filtered)
+    return df_filtered
 def database_parameter_selection(df):
     # df                - is of TYPE row entry of DATAFRAME (every call to df, return float value)
 
@@ -352,10 +359,15 @@ def main_call_per_process(df):#,processes):
     input_folder = "input"
     output_folder = "output"
 
+    def is_one_digit(number):
+        return 0 <= abs(number) <= 9
+    unique_folder_name = (int(input_list[-1]))
+    if is_one_digit(unique_folder_name):
+        unique_folder_name = "ID-0" + str(int(input_list[-1]))
+    else:
+        unique_folder_name = f"ID-{str(unique_folder_name)}"
 
-    unique_folder_name = str(int(input_list[-1]))
-    unique_folder_name = f"ID-{unique_folder_name}"
-
+    # breakpoint()
 
     weight_distribution,load_ditribution = inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,input_folder,output_folder,input_list)
 
@@ -471,3 +483,7 @@ if __name__ == "__main__":
         file.write("\n")
 
     print(processing_string)
+
+# p = Path(__file__).parents[2]
+
+# print(p)
