@@ -34,6 +34,7 @@ import general_model_info_2
 import inputwave_writing
 import public_func
 import itertools
+from datetime import date
 
 
 def inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,input_folder,output_folder,input_list):
@@ -277,8 +278,9 @@ def read_database_Ruben_Vasile ():
         # Create a new string by joining the modified lines
         modified_data = ''.join(lines)
         return modified_data
-    database_folder = "D:\\0 DOCTORAT\\00_RC2\Ruben_Vasile"
-    database_file = "DataSet_P3_orig.csv"
+
+    database_folder = os.path.join(Path(__file__).parents[1],"DATABASE") #"D:\\0 DOCTORAT\\00_RC2\Ruben_Vasile"
+    database_file = "30000_BUILDINGS.csv"
     database_file_location = os.path.join(database_folder,database_file)
     def testing_of_alg(database_file_location):
         # number_of_rows_to_read = 33
@@ -354,7 +356,13 @@ def main_call_per_process(df):#,processes):
 
     output_inputdata_file = "inputdata.txt"
 
-    parent_folder = "D:\\0 DOCTORAT\\00_RC2\\Testare_generare_cladiri_Stera\\dummy_foler_test"
+    # today = date.today()
+    date_now = datetime.now().strftime("%d-%m-%Y_%H-%M")
+    print(date_now)
+    # breakpoint()
+    # date_now = "14.03"
+    folder_of_output_all_simulations = "OUTPUT_" + date_now
+    parent_folder = os.path.join(Path(__file__).parents[1],folder_of_output_all_simulations) #"D:\\0 DOCTORAT\\00_RC2\\Testare_generare_cladiri_Stera\\dummy_foler_test"
     big_log_file = "log.txt"
     input_folder = "input"
     output_folder = "output"
@@ -372,7 +380,7 @@ def main_call_per_process(df):#,processes):
     weight_distribution,load_ditribution = inputdata_generator(output_inputdata_file,unique_folder_name,parent_folder,input_folder,output_folder,input_list)
 
     # THE CSV files are in m/s^2 and needs to be in cm/s^2 - they are scaled to meet correct UNITS inside the functions
-    wave_folder = "D:\\0 DOCTORAT\\00_RC2\Ruben_Vasile\AccSet_V3"
+    wave_folder = os.path.join(Path(__file__).parents[1],"ACCEL_SET")#"D:\\0 DOCTORAT\\00_RC2\Ruben_Vasile\ACCEL_SET"
     string_of_index_acc = str(int(input_list[0]))
 
     wave_file = string_of_index_acc + ".csv"
@@ -391,7 +399,7 @@ def main_call_per_process(df):#,processes):
 
     weight_distribution_generator(weight_distribution,work_folder)
 
-    seed_folder = "D:\\0 DOCTORAT\\00_RC2\Testare_generare_cladiri_Stera\SEED_FOLDER"
+    seed_folder = os.path.join(Path(__file__).parents[1],"SEED_FOLDER")#"D:\\0 DOCTORAT\\00_RC2\Testare_generare_cladiri_Stera\SEED_FOLDER"
     stera_call = "CALL_RESPONSE.bat"
     response_exe = "Response.exe"
     unique_folder = os.path.join(parent_folder,unique_folder_name)
@@ -475,7 +483,7 @@ if __name__ == "__main__":
 
     end_time_acc = datetime.now()
 
-    parent_folder = "D:\\0 DOCTORAT\\00_RC2\\Testare_generare_cladiri_Stera\\dummy_foler_test"
+    parent_folder = Path(__file__).parents[1]
     big_log_file = "log.txt"
     processing_string = 'TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n'
     with open(os.path.join(parent_folder, big_log_file), "a+") as file:
@@ -484,6 +492,6 @@ if __name__ == "__main__":
 
     print(processing_string)
 
-# p = Path(__file__).parents[2]
+p = Path(__file__).parents[1]
 
-# print(p)
+print(p)
