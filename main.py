@@ -21,6 +21,7 @@ import concurrent.futures
 import threading
 from concurrent.futures import as_completed, wait
 import pathlib
+import multiprocessing
 
 import floor_properties
 import output_stera_files
@@ -284,7 +285,7 @@ def read_database_Ruben_Vasile ():
     database_file_location = os.path.join(database_folder,database_file)
     def testing_of_alg(database_file_location):
         # number_of_rows_to_read = 33
-        number_of_rows_to_read = 5
+        number_of_rows_to_read = 50
         rows_to_be_read_list = [x for x in range(number_of_rows_to_read+1)] #if x % 2 == 0]
         # rows_to_be_read_list = [1,2,3]
         # print(rows_to_be_read_list)
@@ -349,20 +350,14 @@ def database_parameter_selection(df):
 
 
 
-def main_call_per_process(df):#,processes):
+def main_call_per_process(df,folder_output):
     start_time_process = time.time()
     df_and_index = df
     input_list = database_parameter_selection(df_and_index)
 
     output_inputdata_file = "inputdata.txt"
 
-    # today = date.today()
-    date_now = datetime.now().strftime("%d-%m-%Y_%H-%M")
-    print(date_now)
-    # breakpoint()
-    # date_now = "14.03"
-    folder_of_output_all_simulations = "OUTPUT_" + date_now
-    parent_folder = os.path.join(Path(__file__).parents[1],folder_of_output_all_simulations) #"D:\\0 DOCTORAT\\00_RC2\\Testare_generare_cladiri_Stera\\dummy_foler_test"
+    parent_folder = os.path.join(Path(__file__).parents[1],folder_output) #"D:\\0 DOCTORAT\\00_RC2\\Testare_generare_cladiri_Stera\\dummy_foler_test"
     big_log_file = "log.txt"
     input_folder = "input"
     output_folder = "output"
@@ -410,7 +405,7 @@ def main_call_per_process(df):#,processes):
     processes = []
     # processes = run_response(unique_folder,stera_call,processes)
     run_response(unique_folder, stera_call, processes)
-    print(f"Processing row {df_and_index['index']}")
+    print(f"Starting Processing row {df_and_index['index']}")
     # Assuming "100 % finished" is the last line written to the file
     stdout_file = os.path.join(unique_folder, "stdout.txt")
 
@@ -443,11 +438,11 @@ def generate_tasks(df):
     for _, row in df.iterrows():
         yield row
 
-def process_rows(executor, tasks):
+def process_rows(executor, tasks, output_folder):
     futures = set()
 
     for task in tasks:
-        future = executor.submit(main_call_per_process, df=task)
+        future = executor.submit(main_call_per_process, df=task, folder_output = output_folder)
         futures.add(future)
 
     # Wait for all submitted futures to complete
@@ -468,8 +463,18 @@ if __name__ == "__main__":
 
     start_time_acc = datetime.now()
 
-    # Use ProcessPoolExecutor for parallel processing with max_workers=3
-    max_workers = 15
+    # Output of all simulations
+    date_now = datetime.now().strftime("%d-%m-%Y_%H-%M")
+    folder_of_output_all_simulations = "OUTPUT_" + date_now
+
+
+
+
+    # breakpoint()
+
+
+    # Use ProcessPoolExecutor for parallel processing with max_workers = number of logical processors
+    max_workers = multiprocessing.cpu_count()-8
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         # Create a generator to yield tasks one by one
         task_generator = generate_tasks(df)
@@ -479,19 +484,19 @@ if __name__ == "__main__":
         semaphore = threading.Semaphore(max_workers)
 
         # Submit tasks and wait for them to complete
-        process_rows(executor, task_generator)
+        process_rows(executor, task_generator, folder_of_output_all_simulations)
 
     end_time_acc = datetime.now()
 
     parent_folder = Path(__file__).parents[1]
     big_log_file = "log.txt"
-    processing_string = 'TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n'
+    processing_string = 'RUN ' + folder_of_output_all_simulations + ' -> TIME ELAPSED: ' + str(end_time_acc - start_time_acc) + '\n'
     with open(os.path.join(parent_folder, big_log_file), "a+") as file:
         file.write(processing_string)
         file.write("\n")
 
     print(processing_string)
 
-p = Path(__file__).parents[1]
-
-print(p)
+# p = Path(__file__).parents[1]
+#
+# print(p)
