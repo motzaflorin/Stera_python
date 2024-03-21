@@ -281,7 +281,7 @@ def read_database_Ruben_Vasile ():
         return modified_data
 
     database_folder = os.path.join(Path(__file__).parents[1],"DATABASE") #"D:\\0 DOCTORAT\\00_RC2\Ruben_Vasile"
-    database_file = "30000_BUILDINGS.csv"
+    database_file = "30000_BUILDINGS_good.csv"
     database_file_location = os.path.join(database_folder,database_file)
     def testing_of_alg(database_file_location):
         # number_of_rows_to_read = 33
@@ -300,14 +300,15 @@ def read_database_Ruben_Vasile ():
         df = pd.read_csv((database_file_location))
         return df
 
-    df = testing_of_alg(database_file_location)
+    # df = testing_of_alg(database_file_location)
+    df = full_alg_database(database_file_location)
     # Specify the condition for rows to keep
-    condition_to_remove_L_shape_buildings = (df['Lshape'] != 1)
+    # condition_to_remove_L_shape_buildings = (df['Lshape'] != 1)
     # print(condition_to_remove_L_shape_buildings)
     # Filter the DataFrame based on the condition
-    df_filtered = df[condition_to_remove_L_shape_buildings]
+    # df_filtered = df[condition_to_remove_L_shape_buildings]
     # print(df_filtered)
-    return df_filtered
+    return df
 def database_parameter_selection(df):
     # df                - is of TYPE row entry of DATAFRAME (every call to df, return float value)
 
